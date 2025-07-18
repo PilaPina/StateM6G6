@@ -1,0 +1,22 @@
+.modalOverlay {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: rgb(223, 167, 247) solid 4px;
+  border-radius: 8px;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  background: #343434;
+  padding: 8rem 3.3rem;
+  gap: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modalButton {
+    align-self: flex-end;
+}
