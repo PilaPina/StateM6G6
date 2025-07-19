@@ -6,10 +6,9 @@ Here I demonstrate state management by combining React Context and the `useReduc
 All word-related state (including fetching, adding, editing, and deleting words) is managed globally using a reducer, and actions are dispatched to update the state. The context provider (`WordProvider`) wraps the entire app, allowing any component to access and update the shared state using the custom `useWordContext` hook. 
 This approach eliminates prop drilling and makes the state logic scalable and maintainable.
 
-
 Styling is minimal and functional, focusing on demonstrating core concepts rather than design.
 
-<img src="./public/Screenshot2.png" alt="Screenshot of website" width="400"/>
+<img src="./public/Screenshot3.png" alt="Screenshot of website" width="400"/>
 
 
 
