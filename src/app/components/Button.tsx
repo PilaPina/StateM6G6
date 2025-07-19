@@ -24,13 +24,13 @@ export default function Button({
       style={{
         padding: "0.5em 1.2em",
         borderRadius: 8,
+        border: "1px solid rgb(223, 167, 247)",
         background: "var(--color-primary)",
         color: "var(--color-text)",
         cursor: disabled ? "not-allowed" : "pointer",
         fontSize: "1rem",
         fontWeight: 500,
         transition: "background 0.2s",
-        ...((className ? {} : {}) as React.CSSProperties),
       }}
     >
       {children}
