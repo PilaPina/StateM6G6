@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import Button from "../components/Button";
 import Modal from "../components/modal/Modal";
+import { useWordContext, WordDoc } from "../context/WordContext";
 
 // Helper to shuffle an array
 function shuffle<T>(array: T[]): T[] {
@@ -15,16 +16,10 @@ function shuffle<T>(array: T[]): T[] {
   return arr;
 }
 
-interface WordDoc {
-  id: string;
-  word: string;
-}
-
 export default function DatabaseStatus() {
+  const { words, editing, dispatch } = useWordContext();
   const [status, setStatus] = useState<string>("Loading…");
-  const [words, setWords] = useState<WordDoc[]>([]);
   const [displayWords, setDisplayWords] = useState<WordDoc[]>([]);
-  const [editing, setEditing] = useState<WordDoc | null>(null);
   const [newWord, setNewWord] = useState<string>("");
 
   // helpers
@@ -42,12 +37,17 @@ export default function DatabaseStatus() {
       .then((r) => r.json())
       .then((d) => {
         if (d.error) throw new Error(d.error);
-        setWords(d.words as WordDoc[]);
+        dispatch({ type: "SET_WORDS", payload: d.words as WordDoc[] });
         refreshDisplayWords(d.words as WordDoc[]);
         setStatus(d.message ?? "Connected");
       })
       .catch((e) => handleError(e, "initial fetch"));
   }, []);
+
+  // Update displayWords when words change
+  useEffect(() => {
+    refreshDisplayWords(words);
+  }, [words]);
 
   // Create, Update, Delete operations
   async function addWord() {
@@ -61,9 +61,7 @@ export default function DatabaseStatus() {
       });
       const doc = await res.json();
       if (doc.error) throw new Error(doc.error);
-      const next = [...words, doc as WordDoc];
-      setWords(next);
-      refreshDisplayWords(next);
+      dispatch({ type: "ADD_WORD", payload: doc as WordDoc });
       setNewWord("");
     } catch (e) {
       handleError(e, "add");
@@ -80,10 +78,8 @@ export default function DatabaseStatus() {
       });
       const doc = await res.json();
       if (doc.error) throw new Error(doc.error);
-      const next = words.map((w) => (w.id === doc.id ? doc : w));
-      setWords(next);
-      refreshDisplayWords(next);
-      setEditing(null);
+      dispatch({ type: "UPDATE_WORD", payload: doc as WordDoc });
+      dispatch({ type: "SET_EDITING", payload: null });
     } catch (e) {
       handleError(e, "update");
     }
@@ -98,9 +94,7 @@ export default function DatabaseStatus() {
       });
       const doc = await res.json();
       if (doc.error) throw new Error(doc.error);
-      const next = words.filter((w) => w.id !== id);
-      setWords(next);
-      refreshDisplayWords(next);
+      dispatch({ type: "DELETE_WORD", payload: id });
     } catch (e) {
       handleError(e, "delete");
     }
@@ -111,21 +105,32 @@ export default function DatabaseStatus() {
       <h2>Are we connected?</h2>
       <h3 className={styles.status}>{status}</h3>
 
-      <ul className={styles.wordList}>
-        {displayWords.map((w) => (
-          <li key={w.id}>
-            <span className={styles.wordText}>{w.word}</span>
-            {words.length > 0 && (
-              <div className={styles.itemActions}>
-                <Button onClick={() => setEditing(w)}>Edit</Button>
-                <Button onClick={() => deleteWord(w.id)}>Delete</Button>
+      <div className={styles.wordRow}>
+        {[0, 2].map((start) => (
+          <div className={styles.wordColumn} key={start}>
+            {displayWords.slice(start, start + 2).map((w) => (
+              <div className={styles.wordItem} key={w.id}>
+                <span className={styles.wordText}>{w.word}</span>
+                <div className={styles.itemActions}>
+                  <Button
+                    onClick={() => dispatch({ type: "SET_EDITING", payload: w })}
+                  >
+                    Edit
+                  </Button>
+                  <Button onClick={() => deleteWord(w.id)}>Delete</Button>
+                </div>
               </div>
-            )}
-          </li>
+            ))}
+          </div>
         ))}
-      </ul>
+      </div>
 
-      {words.length > 0 && (
+      <div>
+        <div className={styles.shuffleButton}>
+          <Button onClick={() => refreshDisplayWords(words)}>
+            SHUFFLE SHUFFLE
+          </Button>
+        </div>
         <div className={styles.inputActions}>
           <input
             value={newWord}
@@ -133,23 +138,33 @@ export default function DatabaseStatus() {
             placeholder="Add a new word"
             type="text"
             className={styles.input}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && newWord.trim()) addWord();
+            }}
+            style={{
+              borderRadius: 8,
+              padding: "0.5em 1.2em",
+              fontSize: "1rem",
+            }}
           />
-          <Button onClick={addWord}>Add</Button>
-          <Button onClick={() => refreshDisplayWords(words)}>Shuffle</Button>
+          <Button onClick={addWord} disabled={!newWord.trim()}>
+            Add
+          </Button>
         </div>
-      )}
+      </div>
 
       <Modal
         isOpen={!!editing}
-        onClose={() => setEditing(null)}
+        onClose={() => dispatch({ type: "SET_EDITING", payload: null })}
       >
         <h3>EDIT WORD</h3>
         <input
           value={editing?.word ?? ""}
           onChange={(e) =>
-            setEditing((prev) =>
-              prev ? { ...prev, word: e.target.value } : null
-            )
+            dispatch({
+              type: "SET_EDITING",
+              payload: editing ? { ...editing, word: e.target.value } : null,
+            })
           }
           className={styles.input}
           style={{ width: "100%", margin: "2em 0", padding: "2em" }}

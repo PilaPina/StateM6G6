@@ -29,7 +29,17 @@
 }
 
 .inputActions {
-  padding-top: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.shuffleButton {
+  display: flex;
+  justify-content: center;
+  padding-top: 32px;
+  padding-bottom: 40px;
+  color: rgb(223, 167, 247);
 }
 
 .wordText {
@@ -43,5 +53,29 @@
 .input {
   padding: 8px;
   border: 1px solid rgb(223, 167, 247);
+}
+
+.wordRow {
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.wordColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.wordItem {
+  background: #232323;
+  padding: 18px 24px;
+  border-radius: 8px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
